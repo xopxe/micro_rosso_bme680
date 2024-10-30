@@ -104,7 +104,8 @@ bool EnvBME680::setup( TwoWire &wire,
                       const char* topic_temperature,
                       const char* topic_humiidity,
                       const char* topic_pressure,
-                      const char* topic_gas_resistance ) {
+                      const char* topic_gas_resistance, 
+                      timer_descriptor &timer_report ) {
   D_println("setup: env_bme680");
   bme = new Adafruit_BME680(&wire);
   if (!bme->begin()) {
@@ -142,7 +143,7 @@ bool EnvBME680::setup( TwoWire &wire,
   pdescriptor_gas_resistance.topic_name = topic_gas_resistance;
   micro_rosso::publishers.push_back(&pdescriptor_gas_resistance);
 
-  micro_rosso::timer_report.callbacks.push_back(&report_cb);
+  timer_report.callbacks.push_back(&report_cb);
 
   return true;
 }
