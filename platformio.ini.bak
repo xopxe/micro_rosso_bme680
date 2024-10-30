@@ -16,5 +16,5 @@ board_microros_distro = humble
 board_microros_transport = serial
 
 lib_deps = 
-    https://github.com/xopxe/micro_rosso_platformio.git#modularization
+    https://github.com/xopxe/micro_rosso_platformio.git
     adafruit/Adafruit BME680 Library@^2.0.5

@@ -15,7 +15,7 @@
     ],
 
     "dependencies": {
-        "micro_rosso_platformio": "https://github.com/xopxe/micro_rosso_platformio.git#modularization",
+        "micro_rosso_platformio": "https://github.com/xopxe/micro_rosso_platformio.git",
         "adafruit/Adafruit BME680 Library": "^2.0.5",
         "adafruit/Adafruit BusIO": "*",
         "adafruit/Adafruit Unified Sensor": "*",
