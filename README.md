@@ -6,7 +6,7 @@ It provides support for the BME680 environmental (temperature/humidity/pressure/
 
 ## Loading and starting
 
-First, import module into in your project's `platformio.ini`:
+First, import the module into your project's `platformio.ini`:
 
 ```
 lib_deps =
