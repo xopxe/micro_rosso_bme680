@@ -1,4 +1,4 @@
-#define READS_INTERVAL_MS 2000
+#define TOPIC_MIN_INTERVAL_MS 1000
 
 #include "micro_rosso.h"
 
@@ -49,13 +49,13 @@ EnvBME680::EnvBME680()
 
 void report_cb(int64_t last_call_time)
 {
-  int ramaining_millis = bme->remainingReadingMillis();
-  if (ramaining_millis == bme->reading_not_started)
+  int remaining_millis = bme->remainingReadingMillis();
+  if (remaining_millis == bme->reading_not_started)
   {
     bme->beginReading();
     return;
   }
-  if (ramaining_millis > bme->reading_complete)
+  if (remaining_millis > bme->reading_complete)
   {
     return;
   }
@@ -65,7 +65,7 @@ void report_cb(int64_t last_call_time)
   }
 
   unsigned long now = millis();
-  if (now - last_read_ms < READS_INTERVAL_MS)
+  if (now - last_read_ms < TOPIC_MIN_INTERVAL_MS)
   {
     return;
   }
@@ -76,7 +76,7 @@ void report_cb(int64_t last_call_time)
   float p = bme->pressure / 100.0;
   float r = bme->gas_resistance / 1000.0; // KOhm
 
-  if (msg_temperature.temperature != t)
+  if (pdescriptor_temperature.topic_name != 0 && msg_temperature.temperature != t)
   {
     msg_temperature.temperature = t;
     micro_rosso::set_timestamp(msg_temperature.header.stamp);
@@ -85,7 +85,7 @@ void report_cb(int64_t last_call_time)
         &msg_temperature,
         NULL));
   }
-  if (msg_humidity.relative_humidity != h)
+  if (pdescriptor_humidity.topic_name != 0 && msg_humidity.relative_humidity != h)
   {
     msg_humidity.relative_humidity = h;
     micro_rosso::set_timestamp(msg_humidity.header.stamp);
@@ -94,7 +94,7 @@ void report_cb(int64_t last_call_time)
         &msg_humidity,
         NULL));
   }
-  if (msg_pressure.fluid_pressure != p)
+  if (pdescriptor_pressure.topic_name != 0 && msg_pressure.fluid_pressure != p)
   {
     msg_pressure.fluid_pressure = p;
     micro_rosso::set_timestamp(msg_pressure.header.stamp);
@@ -103,7 +103,7 @@ void report_cb(int64_t last_call_time)
         &msg_pressure,
         NULL));
   }
-  if (msg_gas_resistance.data != r)
+  if (pdescriptor_gas_resistance.topic_name != 0 && msg_gas_resistance.data != r)
   {
     msg_gas_resistance.data = r;
     RCNOCHECK(rcl_publish(
@@ -115,7 +115,7 @@ void report_cb(int64_t last_call_time)
 
 bool EnvBME680::setup(TwoWire &wire,
                       const char *topic_temperature,
-                      const char *topic_humiidity,
+                      const char *topic_humidity,
                       const char *topic_pressure,
                       const char *topic_gas_resistance,
                       timer_descriptor &timer_report)
@@ -135,30 +135,41 @@ bool EnvBME680::setup(TwoWire &wire,
   bme->setIIRFilterSize(BME680_FILTER_SIZE_3);
   bme->setGasHeater(320, 150); // 320*C for 150 ms
 
-  pdescriptor_temperature.qos = QOS_DEFAULT;
-  pdescriptor_temperature.type_support = (rosidl_message_type_support_t *)
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature);
-  pdescriptor_temperature.topic_name = topic_temperature;
-  micro_rosso::publishers.push_back(&pdescriptor_temperature);
+  if (topic_temperature != NULL)
+  {
+    pdescriptor_temperature.qos = QOS_DEFAULT;
+    pdescriptor_temperature.type_support = (rosidl_message_type_support_t *)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature);
+    pdescriptor_temperature.topic_name = topic_temperature;
+    micro_rosso::publishers.push_back(&pdescriptor_temperature);
+  }
 
-  pdescriptor_humidity.qos = QOS_DEFAULT;
-  pdescriptor_humidity.type_support = (rosidl_message_type_support_t *)
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, RelativeHumidity);
-  pdescriptor_humidity.topic_name = topic_humiidity;
-  micro_rosso::publishers.push_back(&pdescriptor_humidity);
+  if (topic_humidity != NULL)
+  {
+    pdescriptor_humidity.qos = QOS_DEFAULT;
+    pdescriptor_humidity.type_support = (rosidl_message_type_support_t *)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, RelativeHumidity);
+    pdescriptor_humidity.topic_name = topic_humidity;
+    micro_rosso::publishers.push_back(&pdescriptor_humidity);
+  }
 
-  pdescriptor_pressure.qos = QOS_DEFAULT;
-  pdescriptor_pressure.type_support = (rosidl_message_type_support_t *)
-      ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, FluidPressure);
-  pdescriptor_pressure.topic_name = topic_pressure;
-  micro_rosso::publishers.push_back(&pdescriptor_pressure);
+  if (topic_pressure != NULL)
+  {
+    pdescriptor_pressure.qos = QOS_DEFAULT;
+    pdescriptor_pressure.type_support = (rosidl_message_type_support_t *)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, FluidPressure);
+    pdescriptor_pressure.topic_name = topic_pressure;
+    micro_rosso::publishers.push_back(&pdescriptor_pressure);
+  }
 
-  pdescriptor_gas_resistance.qos = QOS_DEFAULT;
-  pdescriptor_gas_resistance.type_support = (rosidl_message_type_support_t *)
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32);
-  pdescriptor_gas_resistance.topic_name = topic_gas_resistance;
-  micro_rosso::publishers.push_back(&pdescriptor_gas_resistance);
-
+  if (topic_gas_resistance != NULL)
+  {
+    pdescriptor_gas_resistance.qos = QOS_DEFAULT;
+    pdescriptor_gas_resistance.type_support = (rosidl_message_type_support_t *)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32);
+    pdescriptor_gas_resistance.topic_name = topic_gas_resistance;
+    micro_rosso::publishers.push_back(&pdescriptor_gas_resistance);
+  }
   timer_report.callbacks.push_back(&report_cb);
 
   D_println("done.");

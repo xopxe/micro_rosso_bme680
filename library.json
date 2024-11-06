@@ -1,8 +1,8 @@
 {
     "name": "micro_rosso_bme680",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "BME680 module for micro_rosso",
-    "keywords": "ros, microros, robot",
+    "keywords": "ros, micro-ros, robot, micro_rosso, bme680",
 
     "authors":
     [
