@@ -1,6 +1,6 @@
 {
   "name": "micro_rosso_bme680",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "BME680 module for micro_rosso",
   "keywords": "ros, micro-ros, robot, micro_rosso, bme680",
   "authors": [
@@ -12,7 +12,7 @@
     }
   ],
   "dependencies": {
-    "xopxe/micro_rosso": "^0.2.0",
+    "xopxe/micro_rosso": "*",
     "adafruit/Adafruit BME680 Library": "^2.0.5",
     "adafruit/Adafruit BusIO": "*",
     "adafruit/Adafruit Unified Sensor": "*",
